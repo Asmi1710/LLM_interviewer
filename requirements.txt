@@ -1,0 +1,16 @@
+Flask==2.3.3
+python-dotenv
+Flask-Caching
+Flask-Threads
+flask-log-request-id
+flask-cors
+pyyaml
+celery
+motor==3.3.2
+pydantic==2.8.0
+bunnet==1.3.0
+pymongo
+requests
+pytz
+
+cerberus

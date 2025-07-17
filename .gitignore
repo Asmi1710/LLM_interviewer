@@ -1,0 +1,12 @@
+.DS_Store
+.vscode
+__pycache__
+log
+venv
+instance
+.env*
+.spyproject
+celerybeat-schedule.db
+flower.db
+.idea
+.coverage

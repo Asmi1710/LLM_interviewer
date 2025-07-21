@@ -1,4 +1,5 @@
 import logging
+import uuid
 from celery.signals import after_setup_logger
 from app.lib.helpers.flask_helper import current_request_id, current_caller_id
 
@@ -32,3 +33,11 @@ def setup_celery_loggers(logger, *args, **kwargs):
     sh = logging.StreamHandler()
     sh.setFormatter(formatter)
     logger.addHandler(sh)
+
+class SafeFormatter(logging.Formatter):
+    def format(self, record):
+        if not hasattr(record, 'request_id') or not record.request_id:
+            record.request_id = str(uuid.uuid4())
+        if not hasattr(record, 'caller_id') or not record.caller_id:
+            record.caller_id = 'system'
+        return super().format(record)

@@ -1,10 +1,11 @@
 # https://github.com/Workable/flask-log-request-id
 
 import os, yaml
+import logging, uuid
 from logging.config import dictConfig
 from flask_log_request_id import RequestID
 from dotenv import load_dotenv
-from app.lib.helpers.logging_helper import RequestIDLogFilter, CallerIDLogFilter
+from app.lib.helpers.logging_helper import RequestIDLogFilter, CallerIDLogFilter, SafeFormatter
 
 class BaseConfig(object):
     load_dotenv(dotenv_path=f'.env')
@@ -127,7 +128,33 @@ def configure_openai(app):
 #     return celery_app
 
 def configure_logger(app):
+    # dictConfig(yaml.full_load(open(f'config/{os.getenv("FLASK_ENV")}/logging.conf')))
+    # RequestID(app)
+    # app.logger.addFilter(RequestIDLogFilter())
+    # app.logger.addFilter(CallerIDLogFilter())
+    # Define custom record factory
+    old_factory = logging.getLogRecordFactory()
+    def record_factory(*args, **kwargs):
+        from flask import has_request_context, request
+
+        record = old_factory(*args, **kwargs)
+        if has_request_context():
+            record.request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+            record.caller_id = request.headers.get("X-Caller-ID", "user")
+        else:
+            record.request_id = str(uuid.uuid4())
+            record.caller_id = "system"
+        return record
+    logging.setLogRecordFactory(record_factory)
+
+    # Load logging configuration
     dictConfig(yaml.full_load(open(f'config/{os.getenv("FLASK_ENV")}/logging.conf')))
+    # Override all formatters with SafeFormatter
+    for handler in app.logger.handlers:
+        if handler.formatter:
+            fmt = handler.formatter._fmt
+            datefmt = handler.formatter.datefmt
+            handler.setFormatter(SafeFormatter(fmt, datefmt))
     RequestID(app)
     app.logger.addFilter(RequestIDLogFilter())
     app.logger.addFilter(CallerIDLogFilter())

@@ -17,3 +17,4 @@ cerberus
 twilio
 redis
 openai
+gunicorn

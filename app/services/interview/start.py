@@ -33,7 +33,7 @@ def call(request):
         twiml=f'''<Response>
             <Say>{introduction}</Say>
             <Redirect method="POST">
-                https://your-ngrok-or-domain.com/interviews/create?candidate_id={candidate_id}&job_id={job_id}&role={request.get('role')}
+                {current_app.config('AI_INTERVIEWER_BASE_URL')}/interviews/create?candidate_id={candidate_id}&job_id={job_id}&role={request.get('role')}
             </Redirect>
             </Response>''',
         to=mobile_number,

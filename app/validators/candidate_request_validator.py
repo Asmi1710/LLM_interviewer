@@ -1,14 +1,14 @@
 from cerberus import Validator
-from .. import RequestErrorHandler
+from . import RequestErrorHandler
 
 candidate_create_validator = Validator({
     'candidate':{
         'type': 'dict',
         'allow_unknown': True,
         'schema': {
-            'name': {'type': 'str', 'required': True, 'empty': False},
-            'mobile_number': {'type': 'str', 'required': True, 'empty': False},
-            'email': {'type': 'str', 'required': True, 'empty': False},
+            'full_name': {'type': 'string', 'required': True, 'empty': False, 'nullable': False},
+            'mobile_number': {'type': 'string', 'required': True, 'empty': False, 'nullable': False},
+            'email': {'type': 'string', 'required': True, 'empty': False, 'nullable': False},
         },
         'required': True
     }

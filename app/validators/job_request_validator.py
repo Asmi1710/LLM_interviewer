@@ -1,12 +1,12 @@
 from cerberus import Validator
-from .. import RequestErrorHandler
+from . import RequestErrorHandler
 
 job_create_validator = Validator({
     'job':{
         'type': 'dict',
         'allow_unknown': True,
         'schema': {
-            'role_name': {'type': 'str', 'required': True, 'empty': False},
+            'role_name': {'type': 'string', 'required': True, 'empty': False, 'nullable': False},
         },
         'required': True
     }

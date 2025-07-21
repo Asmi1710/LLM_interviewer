@@ -10,8 +10,9 @@ from app.models.candidate import Candidate
 
 class Transcript(TypedDict, total=False):
     question: str
-    answer: str
-    score: float | 0.0
+    answer_url: str
+    answer_txt: str
+    score: float = 0.0
 
 class Interview(BaseDocument):
     job_id: Annotated[ObjectId, PydanticObjectId]

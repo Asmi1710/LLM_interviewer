@@ -16,6 +16,13 @@ class BaseConfig(object):
     AI_INTERVIEWER_BACKEND_DB_URI = os.getenv('AI_INTERVIEWER_BACKEND_DB_URI')
     AI_INTERVIEWER_BACKEND_DB_NAME = os.getenv('AI_INTERVIEWER_BACKEND_DB_NAME')
 
+    REDIS_URL=os.getenv('REDIS_URL')
+
+    TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
+    TWILIO_AUTH_TOKEN= os.getenv('TWILIO_AUTH_TOKEN')
+    TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
+
+
 class TestConfig(BaseConfig):
     AI_INTERVIEWER_BACKEND_DB_URI = os.getenv('AI_INTERVIEWER_BACKEND_DB_URI')
     AI_INTERVIEWER_BACKEND_DB_NAME = 'ai_interviewer_backend_test'
@@ -55,8 +62,19 @@ def configure_app(app):
     config_name = os.getenv('FLASK_ENV', 'development')
     app.config.from_object(config[config_name]) # object-based default configuration
     configure_logger(app)
+    configure_redis(app)
+    configure_openai(app)
     # configure_apm(app)
 
+def configure_redis(app):
+    from redis import Redis
+    redis_client = Redis.from_url(os.getenv('REDIS_URL'))
+    app.extensions['redis'] = redis_client
+
+def configure_openai(app):
+    from openai import OpenAI
+    openai_client = OpenAI(api_key= os.getenv('OPENAI_API_KEY'))
+    app.extensions['openai_client'] = openai_client
 # To use within application
 # app.config[key]
 

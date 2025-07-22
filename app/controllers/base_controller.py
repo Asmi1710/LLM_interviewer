@@ -1,4 +1,5 @@
 from flask import request, current_app
+from app.lib.helpers.response_helper import generate_response
 
 def before_request():
     if request.path != '/':    
@@ -22,7 +23,7 @@ def after_request(response):
 def index():
     generate_response(success=True, response_data={
         'status': 'success',
-        'message': 'experts_api_health_ok',
+        'message': 'ai_interviewer_api_health_ok',
         'healthy': True,
         'flask_env': current_app.config['ENV']
     })

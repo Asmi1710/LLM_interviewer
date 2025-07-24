@@ -8,13 +8,16 @@ elevenlabs = ElevenLabs(
 )
 
 def generate_voice(input_text):
-    audio_pcm = elevenlabs.text_to_speech.convert(
+    audio_pcm_generator = elevenlabs.text_to_speech.convert(
         text=input_text,
         voice_id="JBFqnCBsd6RMkjVDRZzb",
         model_id="eleven_multilingual_v2",
         output_format="pcm_16000",
     )
     #play(audio)
+    # Combine generator chunks into bytes
+    audio_pcm = b"".join(audio_pcm_generator)
+    
     audio_wave = convert_pcm_to_wav(audio_pcm)
     return audio_wave
 

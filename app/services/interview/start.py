@@ -1,4 +1,5 @@
 from twilio.rest import Client
+from xml.sax.saxutils import escape
 
 from flask import current_app
 from app.repositories import _candidate_repository, _job_repository
@@ -28,12 +29,17 @@ def call(request):
     # also handle if the user interrupts
 
     client = Client(current_app.config['TWILIO_ACCOUNT_SID'], current_app.config['TWILIO_AUTH_TOKEN'])
-
+    redirect_url = (
+        f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/interviews/create"
+        f"?candidate_id={candidate_id}&job_id={job_id}&role={request.get('role')}"
+    )
+    # Escape the & symbols for XML
+    redirect_url_escaped = escape(redirect_url)
     call = client.calls.create(
         twiml=f'''<Response>
             <Say>{introduction}</Say>
             <Redirect method="POST">
-                {current_app.config['AI_INTERVIEWER_BASE_URL']}/interviews/create?candidate_id={candidate_id}&job_id={job_id}&role={request.get('role')}
+                {redirect_url_escaped}
             </Redirect>
             </Response>''',
         to=mobile_number,

@@ -1,6 +1,7 @@
 from twilio.twiml.voice_response import VoiceResponse
 import hmac, hashlib, time
 from xml.sax.saxutils import escape
+from urllib.parse import urlencode
 
 from flask import current_app, Response
 from app.constants.questions import questions_list
@@ -21,6 +22,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
                 "questions": questions_list.get(role) or ['Please tell me about yourself.', 'Give me breif description of your work experience.'],
                 "transcript": []
             }
+            current_app.logger.info(f"session :{session}")
 
         index = session["question_index"]
         questions = session["questions"]
@@ -45,19 +47,23 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             message = f"{ai_reply}{ts}".encode("utf-8")
             signature = hmac.new(current_app.config['HMAC_SECRET_KEY'].encode(), message, hashlib.sha256).hexdigest()
 
-            audio_url = (
-                f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/audio"
-                f"?text={ai_reply}&ts={ts}&sig={signature}"
-            )
+            audio_prams={
+                "text": ai_reply,
+                "ts": ts,
+                "sig": signature
+            }
+            audio_url = f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/audio?{urlencode(audio_prams)}"
             audio_url_escaped = escape(audio_url)
             current_app.logger.info(f" audio_url: {audio_url}")
             # Play AI question and record user's answer
             response.play(audio_url_escaped)
 
-            record_action_url = escape(
-                f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/create"
-                f"?candidate_id={candidate_id}&job_id={job_id}&role={role}"
-            )
+            record_params = {
+                "candidate_id": candidate_id,
+                "job_id": job_id,
+                "role": role
+            }
+            record_action_url = escape(f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/create?{urlencode(record_params)}")
             response.record(
                 action=record_action_url,
                 method='POST',
@@ -79,5 +85,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             current_app.logger.info(f" end")
             delete_interview_session(call_sid)
 
+        return Response(str(response), mimetype='text/xml') 
+    
     except Exception as e:
         current_app.logger.error(f"Error occured during call: {str(e)}") 

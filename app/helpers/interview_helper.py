@@ -1,10 +1,11 @@
 import json
+from flask import current_app
 
 def get_redis():
-    from flask import current_app
     return current_app.extensions['redis']
 
 def save_interview_session(call_sid, data: dict):
+    current_app.logger.info(f"save_interview_session: {call_sid}, \n data: {data}")
     r = get_redis()
     r.set(f"interview:{call_sid}", json.dumps(data), ex=3600)  # 1 hr expiry
 

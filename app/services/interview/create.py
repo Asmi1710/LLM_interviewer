@@ -46,7 +46,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             signature = hmac.new(current_app.config['HMAC_SECRET_KEY'].encode(), message, hashlib.sha256).hexdigest()
 
             audio_url = (
-                f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/interviews/audio"
+                f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/audio"
                 f"?text={ai_reply}&ts={ts}&sig={signature}"
             )
             audio_url_escaped = escape(audio_url)
@@ -55,7 +55,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             response.play(audio_url_escaped)
 
             record_action_url = escape(
-                f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/interviews/create"
+                f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/create"
                 f"?candidate_id={candidate_id}&job_id={job_id}&role={role}"
             )
             response.record(

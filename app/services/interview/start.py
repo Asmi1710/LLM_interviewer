@@ -36,7 +36,7 @@ def call(request):
         "role": request.get('role')  
     }
     # Escape the & symbols for XML
-    redirect_url = escape(f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/interviews/create?{urlencode(params)}")
+    redirect_url = escape(f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/create?{urlencode(params)}")
     call = client.calls.create(
         twiml=f'''<Response>
             <Say>{introduction}</Say>

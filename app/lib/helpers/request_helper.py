@@ -54,7 +54,7 @@ def validate_response_status(response):
         raise e
 
 def set_headers(headers):
-    headers['caller_id'] = 'experts_backend'
-    headers['X-Request-Id'] = current_request_id() or f'experts-{random_string(stringLength=16)}'
+    headers['caller_id'] = 'ai_interviewer_backend'
+    headers['X-Request-Id'] = current_request_id() or f'ai_interviewer-{random_string(stringLength=16)}'
     return headers
     

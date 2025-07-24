@@ -1,13 +1,17 @@
 from twilio.twiml.voice_response import VoiceResponse
-import time
+import hmac, hashlib, time
 
+from flask import current_app, Response
 from app.constants.questions import questions_list
 from app.repositories import _interview_repository
 from app.helpers.interview_helper import save_interview_session, load_interview_session, delete_interview_session, transcribe_recording
+from app.services.agents.audio_agent import generate_voice
 
 def call(call_sid, recording_url, candidate_id, job_id, role):
     session = load_interview_session(call_sid)
+    current_app.logger.info(f" fetched session: {session}")
     if not session:
+        current_app.logger.info(f" creating session")
         session = {
             "candidate_id": candidate_id,
             "job_id": job_id,
@@ -22,22 +26,34 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
 
     # Save previous answer
     if recording_url and index > 0:
+        current_app.logger.info(f" recording_url: {recording_url}")
         transcript = transcribe_recording(recording_url)
+        current_app.logger.info(f" transcript: {transcript}")
         session["transcript"].append({
-            "question": questions[index - 1],
+            "question": questions[index - 1].get('question'),
             "answer_url": recording_url,
             "answer_txt": transcript
         })
 
     # Ask next question
     if index < len(questions):
-        audio_url = f"https://your-public-url/audio/q{index}.mp3"
+        ai_reply = questions[index].get('question')
+        current_app.logger.info(f" ai_reply: {ai_reply}")
+        ts = str(int(time.time()))
+        message = f"{ai_reply}{ts}".encode("utf-8")
+        signature = hmac.new(current_app.config('HMAC_SECRET_KEY').encode(), message, hashlib.sha256).hexdigest()
+        audio_url = (
+            f"{current_app.config('AI_INTERVIEWER_BASE_URL')}/interviews/audio"
+            f"?text={ai_reply}&ts={ts}&sig={signature}"
+        )
+        current_app.logger.info(f" audio_url: {audio_url}")
         response.play(audio_url)
         response.record(
-            action=f"/interviews/handle",
+            action=f"/interviews/create",
             max_length=30,
             transcribe=False
         )
+        current_app.logger.info(f" return from recording send")
         session["question_index"] += 1
         save_interview_session(call_sid, session)
     else:
@@ -48,6 +64,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             job_id=session["job_id"],
             transcript=session["transcript"]
         )
+        current_app.logger.info(f" end")
         delete_interview_session(call_sid)
 
-    return response
+    return Response(str(response), mimetype='text/xml')

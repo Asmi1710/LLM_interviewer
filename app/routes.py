@@ -12,6 +12,7 @@ interview_blueprint = Blueprint('interview_blueprint', __name__)
 interview_blueprint.route('/create', methods=['POST'])(interview_controller.create)
 interview_blueprint.route('/search', methods=['POST'])(interview_controller.search)
 interview_blueprint.route('/start', methods=['POST'])(interview_controller.start)
+interview_blueprint.route('/audio', methods=['POST'])(interview_controller.audio)
 # # ------------------------------------------------------------------------------------------------------------------------------------ #
 
 # ## Candidate

@@ -63,6 +63,7 @@ config = {
 
 def configure_app(app):
     config_name = os.getenv('FLASK_ENV', 'development')
+    print(f"config_name:{config_name}")
     app.config.from_object(config[config_name]) # object-based default configuration
     configure_logger(app)
     configure_redis(app)

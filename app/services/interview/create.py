@@ -41,9 +41,9 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
         current_app.logger.info(f" ai_reply: {ai_reply}")
         ts = str(int(time.time()))
         message = f"{ai_reply}{ts}".encode("utf-8")
-        signature = hmac.new(current_app.config('HMAC_SECRET_KEY').encode(), message, hashlib.sha256).hexdigest()
+        signature = hmac.new(current_app.config['HMAC_SECRET_KEY'].encode(), message, hashlib.sha256).hexdigest()
         audio_url = (
-            f"{current_app.config('AI_INTERVIEWER_BASE_URL')}/interviews/audio"
+            f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/interviews/audio"
             f"?text={ai_reply}&ts={ts}&sig={signature}"
         )
         current_app.logger.info(f" audio_url: {audio_url}")

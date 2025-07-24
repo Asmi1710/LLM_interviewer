@@ -27,13 +27,13 @@ def call(request):
     # later make provision for additional queries in the call using the request body
     # also handle if the user interrupts
 
-    client = Client(current_app.config('TWILIO_ACCOUNT_SID'), current_app.config('TWILIO_AUTH_TOKEN'))
+    client = Client(current_app.config['TWILIO_ACCOUNT_SID'], current_app.config['TWILIO_AUTH_TOKEN'])
 
     call = client.calls.create(
         twiml=f'''<Response>
             <Say>{introduction}</Say>
             <Redirect method="POST">
-                {current_app.config('AI_INTERVIEWER_BASE_URL')}/interviews/create?candidate_id={candidate_id}&job_id={job_id}&role={request.get('role')}
+                {current_app.config['AI_INTERVIEWER_BASE_URL']}/interviews/create?candidate_id={candidate_id}&job_id={job_id}&role={request.get('role')}
             </Redirect>
             </Response>''',
         to=mobile_number,

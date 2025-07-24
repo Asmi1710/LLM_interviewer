@@ -53,10 +53,10 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
                 "sig": signature
             }
             audio_url = f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/audio?{urlencode(audio_prams)}"
-            audio_url_escaped = escape(audio_url)
+            # audio_url_escaped = escape(audio_url)
             current_app.logger.info(f" audio_url: {audio_url}")
             # Play AI question and record user's answer
-            response.play(audio_url_escaped)
+            response.play(audio_url)
 
             record_params = {
                 "candidate_id": candidate_id,

@@ -25,22 +25,26 @@ def generate_questions(question):
 
 def transcribe_recording(recording_url):
     from flask import current_app
-    import requests
-    import tempfile
+    import requests, tempfile, io
 
     client = current_app.extensions['openai_client']
+    account_sid = current_app.config['TWILIO_ACCOUNT_SID']
+    auth_token = current_app.config['TWILIO_AUTH_TOKEN']
     try:
-        # Download Twilio recording
-        audio = requests.get(recording_url)
-        with tempfile.NamedTemporaryFile(suffix=".mp3") as f:
-            f.write(audio.content)
-            f.seek(0)
-            transcript = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=f
-            )
-            current_app.logger.info(f"transcript: {transcript}")
-            return transcript.text
+        # Download Twilio recording with basic auth
+        audio = requests.get(recording_url, auth=(account_sid, auth_token))
+        if audio.status_code != 200:
+            current_app.logger.error(f"Failed to download audio: {audio.status_code}")
+            return ""
+        
+        audio_bytes = io.BytesIO(audio.content)
+        audio_bytes.name = "recording.mp3"
+        transcript = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_bytes
+        )
+        current_app.logger.info(f"transcript: {transcript}")
+        return transcript.text
     except Exception as e:
         print("STT error:", e)
         return ""

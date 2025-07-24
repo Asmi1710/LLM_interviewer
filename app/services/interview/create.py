@@ -1,6 +1,5 @@
 from twilio.twiml.voice_response import VoiceResponse
 import hmac, hashlib, time
-from xml.sax.saxutils import escape
 from urllib.parse import urlencode
 
 from flask import current_app, Response
@@ -19,6 +18,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
                 "candidate_id": candidate_id,
                 "job_id": job_id,
                 "question_index": 0,
+                "role": role,
                 "questions": questions_list.get(role) or ['Please tell me about yourself.', 'Give me breif description of your work experience.'],
                 "transcript": []
             }
@@ -63,12 +63,13 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
                 "job_id": job_id,
                 "role": role
             }
-            record_action_url = escape(f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/create?{urlencode(record_params)}")
+            record_action_url = f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/create?{urlencode(record_params)}"
             response.record(
                 action=record_action_url,
                 method='POST',
                 max_length=30,
-                transcribe=False
+                transcribe=False,
+                timeout=3,
             )
             current_app.logger.info(f" return from recording send")
 
@@ -77,12 +78,14 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
         else:
             # End of interview
             response.say("Thank you. Your interview is now complete.")
-            _interview_repository().create(
-                candidate_id=session["candidate_id"],
-                job_id=session["job_id"],
-                transcript=session["transcript"]
-            )
-            current_app.logger.info(f" end")
+            params = {
+                "candidate_id": session["candidate_id"],
+                'job_id': session["job_id"],
+                "transcript": session["transcript"],
+                "role": session['role']
+            }
+            _interview_repository().create(**params)
+            current_app.logger.info(f"Interview ends")
             delete_interview_session(call_sid)
 
         return Response(str(response), mimetype='text/xml') 

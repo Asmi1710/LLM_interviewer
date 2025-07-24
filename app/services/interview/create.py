@@ -9,14 +9,14 @@ from app.services.agents.audio_agent import generate_voice
 
 def call(call_sid, recording_url, candidate_id, job_id, role):
     session = load_interview_session(call_sid)
-    current_app.logger.info(f" fetched session: {session}")
+    current_app.logger.info(f"Fetched session: {session}")
     if not session:
-        current_app.logger.info(f" creating session")
+        current_app.logger.info(f"creating session")
         session = {
             "candidate_id": candidate_id,
             "job_id": job_id,
             "question_index": 0,
-            "questions": questions_list.get(role) if questions_list.get(role) else ['Please tell me about yourself.', 'Give me breif description of your work experience.'],
+            "questions": questions_list.get(role) or ['Please tell me about yourself.', 'Give me breif description of your work experience.'],
             "transcript": []
         }
 
@@ -47,9 +47,12 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             f"?text={ai_reply}&ts={ts}&sig={signature}"
         )
         current_app.logger.info(f" audio_url: {audio_url}")
+        # Play AI question and record user's answer
         response.play(audio_url)
         response.record(
-            action=f"/interviews/create",
+            action=f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/interviews/create"
+            f"?candidate_id={candidate_id}&job_id={job_id}&role={role}",
+            method='POST',
             max_length=30,
             transcribe=False
         )

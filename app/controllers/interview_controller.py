@@ -1,4 +1,4 @@
-from flask import request, send_file
+from flask import request, send_file, current_app
 from app.exceptions import InvalidDataError
 from app.lib.helpers.response_helper import generate_response
 
@@ -29,13 +29,17 @@ def search():
 def create():
     from app.services.interview import create as create_service
 
+    current_app.logger.info(f"Twilio callback values: {dict(request.values)}")
     call_sid = request.values.get('CallSid')
     recording_url = request.values.get('RecordingUrl')
+    req_args = request.args
     if not call_sid or not recording_url:
         raise InvalidDataError('Invalid request', data='call_sid or recording_url is missing')
-    req_args = request.args
+    
+    # Log raw values for debug
+    current_app.logger.info(f"Incoming create call: CallSid={call_sid}, RecordingUrl={recording_url}, args={req_args}")
     response_data = create_service.call(call_sid, recording_url, req_args.get('candidate_id'), req_args.get('job_id'), req_args.get('role'))
-    generate_response(success=True, response_data={'status': 'success', 'message': 'interviews conducted successfully', 'data': response_data})    
+    return response_data
         
 
 def audio():

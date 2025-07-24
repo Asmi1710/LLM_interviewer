@@ -33,8 +33,8 @@ def create():
     call_sid = request.values.get('CallSid')
     recording_url = request.values.get('RecordingUrl')
     req_args = request.args
-    if not call_sid or not recording_url:
-        raise InvalidDataError('Invalid request', data='call_sid or recording_url is missing')
+    if not call_sid:
+        raise InvalidDataError('Invalid request', data='call_sid is missing')
     
     # Log raw values for debug
     current_app.logger.info(f"Incoming create call: CallSid={call_sid}, RecordingUrl={recording_url}, args={req_args}")

@@ -2,11 +2,18 @@ from flask import request, current_app
 from app.lib.helpers.response_helper import generate_response
 
 def before_request():
-    if request.path != '/':    
+    if request.path != '/': 
+        if request.method in ['POST', 'PUT', 'PATCH']:
+            if request.is_json:
+                req_data = request.get_json(silent=True) or {}
+            else:
+                req_data = request.form.to_dict()
+        else:
+            req_data = {} 
         current_app.logger.info(f"""API REQUEST - {request.method} {request.path}
         HEADERS: {dict(request.headers)}
         ARGS   : {dict(request.args)}
-        REQUEST: {request.json if (request.method not in ['GET', 'DELETE', 'OPTIONS']) else {} }
+        REQUEST: {req_data}
         """)
 
 

@@ -47,7 +47,7 @@ def call(request):
         "ts": ts,
         "sig": signature
     }
-    audio_url = f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/audio?{urlencode(audio_prams)}"
+    audio_url = escape(f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/audio?{urlencode(audio_prams)}")
     # call = client.calls.create(
     #     twiml=f'''<Response>
     #         <Play>{audio_url}</Play>

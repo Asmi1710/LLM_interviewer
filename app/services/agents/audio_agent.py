@@ -1,6 +1,7 @@
 from elevenlabs.client import ElevenLabs
 from elevenlabs import play
 import os, wave, io
+from flask import current_app
 
 
 elevenlabs = ElevenLabs(
@@ -10,8 +11,8 @@ elevenlabs = ElevenLabs(
 def generate_voice(input_text):
     audio_pcm_generator = elevenlabs.text_to_speech.convert(
         text=input_text,
-        voice_id="JBFqnCBsd6RMkjVDRZzb",
-        model_id="eleven_multilingual_v2",
+        voice_id= current_app.config['ELEVENLAB_VOICE_ID'],
+        model_id= "eleven_multilingual_v2",
         output_format="pcm_16000",
     )
     #play(audio)

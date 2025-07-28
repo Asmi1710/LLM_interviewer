@@ -1,3 +1,4 @@
+import time, hmac, hashlib
 from twilio.rest import Client
 from xml.sax.saxutils import escape
 from urllib.parse import urlencode
@@ -37,12 +38,37 @@ def call(request):
     }
     # Escape the & symbols for XML
     redirect_url = escape(f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/create?{urlencode(params)}")
+
+    ts = str(int(time.time()))
+    message = f"{introduction}{ts}".encode("utf-8")
+    signature = hmac.new(current_app.config['HMAC_SECRET_KEY'].encode(), message, hashlib.sha256).hexdigest()
+    audio_prams={
+        "text": introduction,
+        "ts": ts,
+        "sig": signature
+    }
+    audio_url = f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/audio?{urlencode(audio_prams)}"
+    # call = client.calls.create(
+    #     twiml=f'''<Response>
+    #         <Play>{audio_url}</Play>
+    #         <Redirect method="POST">
+    #             {redirect_url}
+    #         </Redirect>
+    #         </Response>''',
+    #     to=mobile_number,
+    #     from_=current_app.config['TWILIO_PHONE_NUMBER']
+    # )
     call = client.calls.create(
         twiml=f'''<Response>
-            <Say>{introduction}</Say>
-            <Redirect method="POST">
-                {redirect_url}
-            </Redirect>
+            <Play>{audio_url}</Play>
+            <Record 
+                action="{redirect_url}"
+                method="POST"
+                maxLength="30"
+                timeout="2"
+                transcribe="false"
+                playBeep="true"
+                />
             </Response>''',
         to=mobile_number,
         from_=current_app.config['TWILIO_PHONE_NUMBER']

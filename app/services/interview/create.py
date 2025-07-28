@@ -5,8 +5,8 @@ from urllib.parse import urlencode
 from flask import current_app, Response
 from app.constants.questions import questions_list
 from app.repositories import _interview_repository
-from app.helpers.interview_helper import save_interview_session, load_interview_session, delete_interview_session, transcribe_recording
-from app.services.agents.audio_agent import generate_voice
+from app.helpers.interview_helper import save_interview_session, load_interview_session, delete_interview_session
+from app.services.agents import transcribing_agent, reply_generating_agent
 
 def call(call_sid, recording_url, candidate_id, job_id, role):
     try: 
@@ -31,17 +31,25 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
         # Save previous answer
         if recording_url and index > 0:
             current_app.logger.info(f" recording_url: {recording_url}")
-            transcript = transcribe_recording(recording_url)
+            transcript = transcribing_agent.call(recording_url)
             current_app.logger.info(f" transcript: {transcript}")
             session["transcript"].append({
                 "question": questions[index - 1].get('question'),
                 "answer_url": recording_url,
                 "answer_txt": transcript
             })
+        elif recording_url and index == 0:
+            transcript = transcribing_agent.call(recording_url)
 
         # Ask next question
         if index < len(questions):
-            ai_reply = questions[index].get('question')
+            next_question = questions[index].get('question')
+            current_app.logger.info(f" next_question: {next_question}")
+            if index == 0:
+                ai_reply = reply_generating_agent(transcript, 'Hello. This is a recruitment call for conducting the telephonic interview. How are you doing today?', next_question)
+            else:
+                ai_reply = reply_generating_agent(transcript, questions[index - 1].get('question'), next_question)  
+                      
             current_app.logger.info(f" ai_reply: {ai_reply}")
             ts = str(int(time.time()))
             message = f"{ai_reply}{ts}".encode("utf-8")

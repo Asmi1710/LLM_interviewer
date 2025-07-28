@@ -24,7 +24,7 @@ class BaseConfig(object):
     TWILIO_AUTH_TOKEN= os.getenv('TWILIO_AUTH_TOKEN')
     TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
     HMAC_SECRET_KEY = os.getenv('HMAC_SECRET_KEY')
-
+    ELEVENLAB_VOICE_ID= os.getenv('ELEVENLAB_VOICE_ID', 'JBFqnCBsd6RMkjVDRZzb')
 
 class TestConfig(BaseConfig):
     AI_INTERVIEWER_BACKEND_DB_URI = os.getenv('AI_INTERVIEWER_BACKEND_DB_URI')

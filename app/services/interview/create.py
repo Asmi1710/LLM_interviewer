@@ -46,10 +46,10 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             next_question = questions[index].get('question')
             current_app.logger.info(f" next_question: {next_question}")
             if index == 0:
-                ai_reply = reply_generating_agent(transcript, 'Hello. This is a recruitment call for conducting the telephonic interview. How are you doing today?', next_question)
+                ai_reply = reply_generating_agent.call(transcript, 'Hello. This is a recruitment call for conducting the telephonic interview. How are you doing today?', next_question)
             else:
-                ai_reply = reply_generating_agent(transcript, questions[index - 1].get('question'), next_question)  
-                      
+                ai_reply = reply_generating_agent.call(transcript, questions[index - 1].get('question'), next_question)  
+
             current_app.logger.info(f" ai_reply: {ai_reply}")
             ts = str(int(time.time()))
             message = f"{ai_reply}{ts}".encode("utf-8")

@@ -104,7 +104,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             }
             interview = _interview_repository().create(**params)
             current_app.logger.info(f"Interview ends")
-            evaluation_agent(interview, session["questions"])
+            evaluation_agent.call(interview, session["questions"])
             delete_interview_session(call_sid)
 
         return Response(str(response), mimetype='text/xml') 

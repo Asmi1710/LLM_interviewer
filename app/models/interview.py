@@ -14,6 +14,14 @@ class Transcript(TypedDict, total=False):
     answer_txt: str
     score: float = 0.0
 
+class CandidateDetails(TypedDict, total=False):
+    name: str
+    mobile: str
+
+class JobDetails(TypedDict, total=False):
+    name: str
+    job_code: str
+    
 class Interview(BaseDocument):
     job_id: Annotated[ObjectId, PydanticObjectId]
     role: str
@@ -21,6 +29,8 @@ class Interview(BaseDocument):
     overall_score: float = 0.0
     summary: str | None = None
     candidate_id: Annotated[ObjectId, PydanticObjectId]
+    candidate_details: CandidateDetails | None = None
+    job_details: JobDetails | None = None
     
     class Settings:
         name = "interviews"

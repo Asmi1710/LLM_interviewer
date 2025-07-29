@@ -6,7 +6,7 @@ from flask import current_app, Response
 from app.constants.questions import questions_list
 from app.repositories import _interview_repository
 from app.helpers.interview_helper import save_interview_session, load_interview_session, delete_interview_session
-from app.services.agents import transcribing_agent, reply_generating_agent
+from app.services.agents import transcribing_agent, reply_generating_agent, evaluation_agent
 
 def call(call_sid, recording_url, candidate_id, job_id, role):
     try: 
@@ -77,7 +77,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
                 method='POST',
                 max_length=30,
                 transcribe=False,
-                timeout=3,
+                timeout=2,
             )
             current_app.logger.info(f" return from recording send")
 
@@ -85,15 +85,26 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             save_interview_session(call_sid, session)
         else:
             # End of interview
-            response.say("Thank you. Your interview is now complete.")
+            ts = str(int(time.time()))
+            message = f"{"Thank you. Your interview is now complete."}{ts}".encode("utf-8")
+            signature = hmac.new(current_app.config['HMAC_SECRET_KEY'].encode(), message, hashlib.sha256).hexdigest()
+
+            audio_prams={
+                "text": "Thank you. Your interview is now complete.",
+                "ts": ts,
+                "sig": signature
+            }
+            audio_url = f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/audio?{urlencode(audio_prams)}"
+            response.play(audio_url)
             params = {
                 "candidate_id": session["candidate_id"],
                 'job_id': session["job_id"],
                 "transcript": session["transcript"],
                 "role": session['role']
             }
-            _interview_repository().create(**params)
+            interview = _interview_repository().create(**params)
             current_app.logger.info(f"Interview ends")
+            evaluation_agent(interview, session["questions"])
             delete_interview_session(call_sid)
 
         return Response(str(response), mimetype='text/xml') 

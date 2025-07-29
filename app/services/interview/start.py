@@ -65,7 +65,7 @@ def call(request):
                 action="{redirect_url}"
                 method="POST"
                 maxLength="30"
-                timeout="2"
+                timeout="1"
                 transcribe="false"
                 playBeep="true"
                 />

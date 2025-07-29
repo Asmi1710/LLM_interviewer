@@ -28,6 +28,7 @@ class Job(BaseDocument):
     decription: str | None = None
     location: LocationSchema | None = None
     status: StatusEnum = StatusEnum.created
+    job_code: str | None = None
 
     class Settings:
         name = "jobs"

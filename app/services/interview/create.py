@@ -111,3 +111,15 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
     
     except Exception as e:
         current_app.logger.error(f"Error occured during call: {str(e)}") 
+        if session:
+            params = {
+                "candidate_id": session["candidate_id"],
+                'job_id': session["job_id"],
+                "transcript": session["transcript"],
+                "role": session['role'],
+                'interview_success': False
+            }
+            interview = _interview_repository().create(**params)
+            current_app.logger.info(f"Interview ends")
+            evaluation_agent.call(interview, session["questions"])
+            delete_interview_session(call_sid)

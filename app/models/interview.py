@@ -21,7 +21,7 @@ class CandidateDetails(TypedDict, total=False):
 class JobDetails(TypedDict, total=False):
     name: str
     job_code: str
-    
+
 class Interview(BaseDocument):
     job_id: Annotated[ObjectId, PydanticObjectId]
     role: str
@@ -31,6 +31,7 @@ class Interview(BaseDocument):
     candidate_id: Annotated[ObjectId, PydanticObjectId]
     candidate_details: CandidateDetails | None = None
     job_details: JobDetails | None = None
+    interview_success: bool = True
     
     class Settings:
         name = "interviews"

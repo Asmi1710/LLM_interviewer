@@ -16,6 +16,6 @@ def call(conditions, offset=None, limit=None, sort_column=None, sort_order=None)
         "sort_column": sort_column,
         "sort_order": sort_order,
         "count": len(candidates),
-        "total": candidates.count()
+        "total": candidate_query.count()
     }
 

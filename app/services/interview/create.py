@@ -86,7 +86,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
         else:
             # End of interview
             ts = str(int(time.time()))
-            message = f"{"Thank you. Your interview is now complete."}{ts}".encode("utf-8")
+            message = f"{'Thank you. Your interview is now complete.'}{ts}".encode("utf-8")
             signature = hmac.new(current_app.config['HMAC_SECRET_KEY'].encode(), message, hashlib.sha256).hexdigest()
 
             audio_prams={

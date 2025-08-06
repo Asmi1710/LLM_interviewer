@@ -38,7 +38,7 @@ def create():
     
     # Log raw values for debug
     current_app.logger.info(f"Incoming create call: CallSid={call_sid}, RecordingUrl={recording_url}, args={req_args}")
-    response_data = create_service.call(call_sid, recording_url, req_args.get('candidate_id'), req_args.get('job_id'), req_args.get('role'))
+    response_data = create_service.call(call_sid, recording_url, req_args.get('candidate_id'), req_args.get('job_id'), req_args.get('role'), req_args.get('ai_question'))
     return response_data
         
 

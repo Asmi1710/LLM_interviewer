@@ -1,6 +1,6 @@
 
 def introductory_question(name):
-    return f'Hello {name}. This is a recruitment call for conducting the telephonic interview. How are you doing today?'
+    return f'Hello {name}. This is a recruitment call for conducting the telephonic interview. For each question, you will have 20 to 30 seconds to finish your reply. Please let me know if you are ready to start the interview.'
 
 
 python_questions = [{

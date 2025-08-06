@@ -8,8 +8,9 @@ from app.repositories import _interview_repository
 from app.helpers.interview_helper import save_interview_session, load_interview_session, delete_interview_session
 from app.services.agents import transcribing_agent, reply_generating_agent, evaluation_agent
 
-def call(call_sid, recording_url, candidate_id, job_id, role):
+def call(call_sid, recording_url, candidate_id, job_id, role, ai_question=None):
     try: 
+        current_app.logger.info(f"ai_question :{ai_question}")
         session = load_interview_session(call_sid)
         current_app.logger.info(f"Fetched session: {session}")
         if not session:
@@ -30,11 +31,11 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
 
         # Save previous answer
         if recording_url and index > 0:
-            current_app.logger.info(f" recording_url: {recording_url}")
+            current_app.logger.info(f" recording_url: {recording_url} and ai_question:{ai_question}")
             transcript = transcribing_agent.call(recording_url)
             current_app.logger.info(f" transcript: {transcript}")
             session["transcript"].append({
-                "question": questions[index - 1].get('question'),
+                "question": ai_question or questions[index - 1].get('question'),
                 "answer_url": recording_url,
                 "answer_txt": transcript
             })
@@ -46,9 +47,9 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             next_question = questions[index].get('question')
             current_app.logger.info(f" next_question: {next_question}")
             if index == 0:
-                ai_reply = reply_generating_agent.call(transcript, 'Hello. This is a recruitment call for conducting the telephonic interview. How are you doing today?', next_question)
+                ai_reply = reply_generating_agent.call(transcript, 'Hello. This is a recruitment call for conducting the telephonic interview. Please let me know if you are ready to start the interview.', next_question, -1, 0)
             else:
-                ai_reply = reply_generating_agent.call(transcript, questions[index - 1].get('question'), next_question)  
+                ai_reply = reply_generating_agent.call(transcript, questions[index - 1].get('question'), next_question, index-1, index)  
 
             current_app.logger.info(f" ai_reply: {ai_reply}")
             ts = str(int(time.time()))
@@ -56,7 +57,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             signature = hmac.new(current_app.config['HMAC_SECRET_KEY'].encode(), message, hashlib.sha256).hexdigest()
 
             audio_prams={
-                "text": ai_reply,
+                "text": ai_reply.get('reply', next_question),
                 "ts": ts,
                 "sig": signature
             }
@@ -69,7 +70,8 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             record_params = {
                 "candidate_id": candidate_id,
                 "job_id": job_id,
-                "role": role
+                "role": role,
+                "ai_question": ai_reply.get('reply', next_question)
             }
             record_action_url = f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/create?{urlencode(record_params)}"
             response.record(
@@ -81,7 +83,8 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             )
             current_app.logger.info(f" return from recording send")
 
-            session["question_index"] += 1
+            current_app.logger.info(f"ai_reply: {ai_reply}")
+            session["question_index"] = int(ai_reply.get('index'))
             save_interview_session(call_sid, session)
         else:
             # End of interview
@@ -96,6 +99,9 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             }
             audio_url = f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/audio?{urlencode(audio_prams)}"
             response.play(audio_url)
+            # Hang up after final message
+            response.hangup()
+
             params = {
                 "candidate_id": session["candidate_id"],
                 'job_id': session["job_id"],
@@ -106,6 +112,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role):
             current_app.logger.info(f"Interview ends")
             evaluation_agent.call(interview, session["questions"])
             delete_interview_session(call_sid)
+            current_app.logger.info(f"Deleted interview session: {call_sid}")
 
         return Response(str(response), mimetype='text/xml') 
     

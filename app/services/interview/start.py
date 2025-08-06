@@ -34,7 +34,8 @@ def call(request):
     params = {
         "candidate_id": candidate_id,
         "job_id": job_id,
-        "role": request.get('role')  
+        "role": request.get('role'),
+        "ai_question": request.get('ai_question')  
     }
     # Escape the & symbols for XML
     redirect_url = escape(f"{current_app.config['AI_INTERVIEWER_BASE_URL']}/api/v1/interviews/create?{urlencode(params)}")

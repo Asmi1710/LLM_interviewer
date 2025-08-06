@@ -41,5 +41,7 @@ def call(interview, questions):
     ai_summary = ai_summary_response.output[0].content[0].text
     avg_score = round(total_score/ len(new_transcript), 2)
     update_request= {'transcript': new_transcript, 'overall_score': avg_score, 'summary': ai_summary}
+    current_app.logger.info(f"Update request: {update_request}")
     _interview_repository().update(interview, update_request)
+    current_app.logger.info(f"Update with score and summary completed")
     return 

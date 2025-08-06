@@ -84,7 +84,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role, ai_question=None):
             current_app.logger.info(f" return from recording send")
 
             current_app.logger.info(f"ai_reply: {ai_reply}")
-            session["question_index"] = int(ai_reply.get('index'))
+            session["question_index"] = (int(ai_reply.get('index'))+ 1)
             save_interview_session(call_sid, session)
         else:
             # End of interview

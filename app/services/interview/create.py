@@ -53,7 +53,7 @@ def call(call_sid, recording_url, candidate_id, job_id, role, ai_question=None):
 
             current_app.logger.info(f" ai_reply: {ai_reply}")
             ts = str(int(time.time()))
-            message = f"{ai_reply}{ts}".encode("utf-8")
+            message = f"{ai_reply.get('reply', next_question)}{ts}".encode("utf-8")
             signature = hmac.new(current_app.config['HMAC_SECRET_KEY'].encode(), message, hashlib.sha256).hexdigest()
 
             audio_prams={
